@@ -42,7 +42,7 @@ public class CardDisplay : NetworkBehaviour
             if (FindObjectOfType<CardController>().CheckCard(card))
             {
                 playerInventory.CmdUseCard(card.cardType, card.cardColor);
-                TC.CmdNextPlayer();
+                TC.CmdNextPlayer(card.cardType);
 
                 Destroy(this.gameObject);
             }

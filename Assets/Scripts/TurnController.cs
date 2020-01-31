@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Linq;
 
 public class TurnController : NetworkBehaviour
 {
@@ -13,6 +14,9 @@ public class TurnController : NetworkBehaviour
     public float TurnTime;
 
     public float MaxTurnTime = 10;
+
+    [Header("SERVER FIELD")]
+    public List<NetworkIdentity> PlayersTurn = new List<NetworkIdentity>();
 
     // Start is called before the first frame update
     void Start()
@@ -37,16 +41,26 @@ public class TurnController : NetworkBehaviour
 
         if(TurnTime >= MaxTurnTime)
         {
-            CmdNextPlayer();
+            //use card or draw
+
+            CmdNextPlayer(CardType.Three);
         }
     }
 
     [ClientRpc]
-    public void RpcMyTurn(bool turnBool)
+    public void RpcMyTurn(bool turnBool, bool force)
     {
         if (isLocalPlayer)
         {
             MyTurn = turnBool;
+
+            if(force && MyTurn)
+            {
+                StopAllCoroutines();
+                TurnTime = 0;
+                StartCoroutine(MyTurnCortine());
+            }
+
             if (MyTurn && !TurnStarted)
             {
                 StartCoroutine(MyTurnCortine());
@@ -63,28 +77,69 @@ public class TurnController : NetworkBehaviour
     public void CmdMyTurn(bool turnBool)
     {
         MyTurn = turnBool;
-        RpcMyTurn(turnBool);
+        RpcMyTurn(turnBool, false);
     }
 
     [Command]
-    public void CmdNextPlayer()
+    public void CmdNextPlayer(CardType type)
     {
-        for(int i = 0; i < NetworkServer.connections.Count; i++)
+        if(PlayersTurn.Count == 0)
         {
-            if (NetworkServer.connections[i].identity.GetComponent<TurnController>().MyTurn)
+            foreach(NetworkConnectionToClient conn in NetworkServer.connections.Values)
             {
-                int nextPlayer = i + 1;
-                print($"NEXT PLAYER IS: {nextPlayer} BUT CONNECTIONS COUNT IS: {NetworkServer.connections.Count}");
-                if (nextPlayer >= NetworkServer.connections.Count)
+                PlayersTurn.Add(conn.identity);
+            }
+        }
+
+        int countPlayer = 1;
+        if (type == CardType.Stop)
+        {
+            countPlayer++;
+        }
+        else if (type == CardType.Reverse)
+        {
+            PlayersTurn.Reverse();
+
+            if (PlayersTurn.Count == 2)
+            {
+                for (int i = 0; i < PlayersTurn.Count; i++)
                 {
-                    nextPlayer = 0;
+                    if (PlayersTurn[i].GetComponent<TurnController>().MyTurn)
+                    {
+                        PlayersTurn[i].GetComponent<TurnController>().MyTurn = true;
+                        PlayersTurn[i].GetComponent<TurnController>().RpcMyTurn(true, true);
+                        return;
+                    }
+                }
+            }
+        }
+
+
+        for(int i = 0; i < PlayersTurn.Count; i++)
+        {
+            if (PlayersTurn[i].GetComponent<TurnController>().MyTurn)
+            {
+                int nextPlayer = i + countPlayer;
+                if (nextPlayer >= PlayersTurn.Count)
+                {
+                    nextPlayer = 0 + (nextPlayer - PlayersTurn.Count);
+                    //nextPlayer = 0 + (PlayersTurn.Count - countPlayer);
+                    print($"FDSGHJFGDSHKJFGDSHJKFDESGHJKGFHDSJFGDSHJGFDSHJGFDHSJGFHSJGFHDSJKGFDSHJKDSHJ DSHJGFHDSJKGFHJDSGFJHDSGFHJDSJFDS: {nextPlayer}");
                 }
 
-                NetworkServer.connections[i].identity.GetComponent<TurnController>().MyTurn = false;
-                NetworkServer.connections[i].identity.GetComponent<TurnController>().RpcMyTurn(false);
+                if(i == nextPlayer)
+                {
+                    PlayersTurn[i].GetComponent<TurnController>().MyTurn = true;
+                    PlayersTurn[i].GetComponent<TurnController>().RpcMyTurn(true, true);
+                }
+                else
+                {
+                    PlayersTurn[i].GetComponent<TurnController>().MyTurn = false;
+                    PlayersTurn[i].GetComponent<TurnController>().RpcMyTurn(false, false);
 
-                NetworkServer.connections[nextPlayer].identity.GetComponent<TurnController>().MyTurn = true;
-                NetworkServer.connections[nextPlayer].identity.GetComponent<TurnController>().RpcMyTurn(true);
+                    PlayersTurn[nextPlayer].GetComponent<TurnController>().MyTurn = true;
+                    PlayersTurn[nextPlayer].GetComponent<TurnController>().RpcMyTurn(true, false);
+                }
                 break;
             }
         }

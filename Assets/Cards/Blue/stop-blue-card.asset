@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: stop-blue-card
   m_EditorClassIdentifier: 
   name: 
-  cardType: 13
+  cardType: 14
   cardColor: 2
   Image: {fileID: 21300000, guid: 653161d1b48e05745aaee9181c577023, type: 3}

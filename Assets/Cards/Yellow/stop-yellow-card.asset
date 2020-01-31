@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: stop-yellow-card
   m_EditorClassIdentifier: 
   name: 
-  cardType: 13
+  cardType: 14
   cardColor: 3
   Image: {fileID: 21300000, guid: 520f25344d635234eba56a6dafec37ae, type: 3}

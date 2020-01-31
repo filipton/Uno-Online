@@ -61,7 +61,7 @@ public class DeckController : NetworkBehaviour
         FindObjectOfType<PlayerInventory>().NonCmdAddToDeck(DeckCards[0].cardType, DeckCards[0].cardColor);
         DeckCards.RemoveAt(0);
 
-        NetworkServer.connections[0].identity.GetComponent<TurnController>().RpcMyTurn(true);
+        NetworkServer.connections[0].identity.GetComponent<TurnController>().RpcMyTurn(true, false);
     }
 
     [Server]
