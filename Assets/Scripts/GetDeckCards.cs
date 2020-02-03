@@ -30,5 +30,6 @@ public class GetDeckCards : NetworkBehaviour
     public void GetCardButton()
     {
         Inv.CmdAddCard(ID);
+        Inv.GetComponent<TurnController>().TurnTime = 10;
     }
 }

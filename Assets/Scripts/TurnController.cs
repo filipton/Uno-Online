@@ -32,6 +32,21 @@ public class TurnController : NetworkBehaviour
 
     IEnumerator MyTurnCortine()
     {
+        TableDeckCard actualcard = FindObjectOfType<TableDeckController>().GetFirstCard();
+        if (actualcard.Active && actualcard.cardType == CardType.PlusFour)
+        {
+            for(int i = 0; i < 4; i++)
+            {
+                if(isLocalPlayer)
+                    FindObjectOfType<GetDeckCards>().GetCardButton();
+
+                yield return new WaitForSeconds(0.250f);
+            }
+
+            FindObjectOfType<TableDeckController>().ChangeFirst(actualcard.FakeColor, false);
+            CmdNextPlayer(CardType.Three);
+        }
+
         while(TurnTime < MaxTurnTime)
         {
             TurnTime += Time.deltaTime;

@@ -57,4 +57,9 @@ public class TableDeckController : NetworkBehaviour
     {
         return TableDeckCards[TableDeckCards.Count - 1].FakeColor;
     }
+
+    public TableDeckCard GetFirstCard()
+    {
+        return TableDeckCards[TableDeckCards.Count - 1];
+    }
 }
